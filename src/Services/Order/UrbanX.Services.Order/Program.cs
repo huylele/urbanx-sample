@@ -85,8 +85,7 @@ app.MapGet("/api/cart/{customerId:guid}", async (Guid customerId, OrderDbContext
 {
     RequestValidation.ValidateGuid(customerId, nameof(customerId));
 
-    var sub = httpContext.User.FindFirst("sub")?.Value;
-    if (!Guid.TryParse(sub, out var callerId) || callerId != customerId)
+    if (!httpContext.IsAuthorizedForUser(customerId))
         return Results.Forbid();
     
     var cart = await db.Carts
@@ -111,8 +110,7 @@ app.MapPost("/api/cart/{customerId:guid}/items", async (Guid customerId, CartIte
     RequestValidation.ValidatePositive(item.UnitPrice, nameof(item.UnitPrice));
     RequestValidation.ValidateRequiredString(item.ProductName, nameof(item.ProductName), 200);
 
-    var sub = httpContext.User.FindFirst("sub")?.Value;
-    if (!Guid.TryParse(sub, out var callerId) || callerId != customerId)
+    if (!httpContext.IsAuthorizedForUser(customerId))
         return Results.Forbid();
     
     var cart = await db.Carts
@@ -147,8 +145,7 @@ app.MapDelete("/api/cart/{customerId:guid}/items/{itemId:guid}", async (Guid cus
     RequestValidation.ValidateGuid(customerId, nameof(customerId));
     RequestValidation.ValidateGuid(itemId, nameof(itemId));
 
-    var sub = httpContext.User.FindFirst("sub")?.Value;
-    if (!Guid.TryParse(sub, out var callerId) || callerId != customerId)
+    if (!httpContext.IsAuthorizedForUser(customerId))
         return Results.Forbid();
     
     var cart = await db.Carts
@@ -174,8 +171,7 @@ app.MapPost("/api/orders", async (UrbanX.Services.Order.Models.Order order, Orde
     RequestValidation.ValidateGuid(order.CustomerId, nameof(order.CustomerId));
     RequestValidation.ValidateRequiredString(order.ShippingAddress, nameof(order.ShippingAddress), 500);
 
-    var sub = httpContext.User.FindFirst("sub")?.Value;
-    if (!Guid.TryParse(sub, out var callerId) || callerId != order.CustomerId)
+    if (!httpContext.IsAuthorizedForUser(order.CustomerId))
         return Results.Forbid();
     
     if (order.Items == null || !order.Items.Any())
@@ -260,12 +256,12 @@ app.MapGet("/api/orders/{orderId:guid}", async (Guid orderId, OrderDbContext db,
     
     if (order is null) return Results.NotFound();
 
-    var sub = httpContext.User.FindFirst("sub")?.Value;
-    if (!Guid.TryParse(sub, out var callerId))
+    var callerId = httpContext.GetAuthenticatedUserId();
+    if (callerId is null)
         return Results.Forbid();
 
-    var isCustomerOwner = callerId == order.CustomerId;
-    var isMerchantOwner = order.Items.Any(i => i.MerchantId == callerId);
+    var isCustomerOwner = callerId.Value == order.CustomerId;
+    var isMerchantOwner = order.Items.Any(i => i.MerchantId == callerId.Value);
     if (!isCustomerOwner && !isMerchantOwner)
         return Results.Forbid();
 
@@ -276,8 +272,7 @@ app.MapGet("/api/orders/customer/{customerId:guid}", async (Guid customerId, Ord
 {
     RequestValidation.ValidateGuid(customerId, nameof(customerId));
 
-    var sub = httpContext.User.FindFirst("sub")?.Value;
-    if (!Guid.TryParse(sub, out var callerId) || callerId != customerId)
+    if (!httpContext.IsAuthorizedForUser(customerId))
         return Results.Forbid();
     
     var orders = await db.Orders
@@ -302,8 +297,8 @@ app.MapPut("/api/orders/{orderId:guid}/status", async (Guid orderId, OrderStatus
     
     if (order == null) return Results.NotFound();
 
-    var sub = httpContext.User.FindFirst("sub")?.Value;
-    if (!Guid.TryParse(sub, out var callerMerchantId) || !order.Items.Any(i => i.MerchantId == callerMerchantId))
+    var callerMerchantId = httpContext.GetAuthenticatedUserId();
+    if (callerMerchantId is null || !order.Items.Any(i => i.MerchantId == callerMerchantId.Value))
         return Results.Forbid();
 
     if (!OrderStatusTransitions.IsAllowed(order.Status, status))
@@ -337,8 +332,8 @@ app.MapPost("/api/orders/{orderId:guid}/accept", async (Guid orderId, OrderDbCon
 
     if (order == null) return Results.NotFound();
 
-    var sub = httpContext.User.FindFirst("sub")?.Value;
-    if (!Guid.TryParse(sub, out var callerMerchantId) || !order.Items.Any(i => i.MerchantId == callerMerchantId))
+    var callerMerchantId = httpContext.GetAuthenticatedUserId();
+    if (callerMerchantId is null || !order.Items.Any(i => i.MerchantId == callerMerchantId.Value))
         return Results.Forbid();
 
     if (order.Status != OrderStatus.PaymentReceived)

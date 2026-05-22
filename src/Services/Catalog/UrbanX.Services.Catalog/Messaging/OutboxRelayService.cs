@@ -13,6 +13,7 @@ namespace UrbanX.Services.Catalog.Messaging;
 public class OutboxRelayService : BackgroundService
 {
     private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan PublishTimeout = TimeSpan.FromSeconds(30);
     private const int MaxRetries = 5;
     private const int BatchSize = 50;
 
@@ -88,7 +89,9 @@ public class OutboxRelayService : BackgroundService
                 return;
             }
 
-            await publisher.PublishAsync(productEvent, cancellationToken);
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeoutCts.CancelAfter(PublishTimeout);
+            await publisher.PublishAsync(productEvent, timeoutCts.Token);
 
             // Mark as processed only after a successful publish.
             // If SaveChangesAsync fails here, the message remains pending and

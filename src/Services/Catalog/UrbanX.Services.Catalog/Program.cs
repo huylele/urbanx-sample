@@ -137,11 +137,10 @@ app.MapPost("/api/products", async (CreateProductRequest request, CatalogDbConte
     RequestValidation.ValidateRequiredString(request.Name, nameof(request.Name), 200);
     RequestValidation.ValidatePositive(request.Price, nameof(request.Price));
 
-    var isAdmin = httpContext.User.HasClaim("role", "admin");
+    var isAdmin = httpContext.User.HasClaim(ClaimConstants.Role, ClaimConstants.AdminRole);
     if (!isAdmin)
     {
-        var sub = httpContext.User.FindFirst("sub")?.Value;
-        if (!Guid.TryParse(sub, out var callerMerchantId) || callerMerchantId != request.MerchantId)
+        if (!httpContext.IsAuthorizedForUser(request.MerchantId))
             return Results.Forbid();
     }
 
@@ -202,11 +201,10 @@ app.MapPut("/api/products/{id:guid}", async (Guid id, UpdateProductRequest reque
     var product = await db.Products.FindAsync(id);
     if (product is null) return Results.NotFound();
 
-    var isAdmin = httpContext.User.HasClaim("role", "admin");
+    var isAdmin = httpContext.User.HasClaim(ClaimConstants.Role, ClaimConstants.AdminRole);
     if (!isAdmin)
     {
-        var sub = httpContext.User.FindFirst("sub")?.Value;
-        if (!Guid.TryParse(sub, out var callerMerchantId) || callerMerchantId != product.MerchantId)
+        if (!httpContext.IsAuthorizedForUser(product.MerchantId))
             return Results.Forbid();
     }
 
@@ -257,11 +255,10 @@ app.MapDelete("/api/products/{id:guid}", async (Guid id, CatalogDbContext db, Ht
     var product = await db.Products.FindAsync(id);
     if (product is null) return Results.NotFound();
 
-    var isAdmin = httpContext.User.HasClaim("role", "admin");
+    var isAdmin = httpContext.User.HasClaim(ClaimConstants.Role, ClaimConstants.AdminRole);
     if (!isAdmin)
     {
-        var sub = httpContext.User.FindFirst("sub")?.Value;
-        if (!Guid.TryParse(sub, out var callerMerchantId) || callerMerchantId != product.MerchantId)
+        if (!httpContext.IsAuthorizedForUser(product.MerchantId))
             return Results.Forbid();
     }
 

@@ -19,6 +19,7 @@ public class CreateProductRequest
     [Range(0, int.MaxValue)]
     public int StockQuantity { get; set; }
 
+    [Url]
     public string? ImageUrl { get; set; }
 
     public Guid? CategoryId { get; set; }
@@ -40,6 +41,7 @@ public class UpdateProductRequest
     [Range(0, int.MaxValue)]
     public int StockQuantity { get; set; }
 
+    [Url]
     public string? ImageUrl { get; set; }
 
     public Guid? CategoryId { get; set; }

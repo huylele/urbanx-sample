@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using UrbanX.Services.Order.Data;
 using UrbanX.Services.Order.Messaging;
 using UrbanX.Services.Order.Models;
+using UrbanX.Shared;
 
 namespace UrbanX.Services.Order.UnitTests;
 
@@ -136,7 +137,7 @@ public class PaymentResponseConsumerTests
         // Write only the outbox message (EF InMemory's unique-index constraint on the Order
         // entity can interfere with multi-step scenarios, so we isolate the outbox assertion).
         using var context = new OrderDbContext(options);
-        context.OutboxMessages.Add(new Models.OutboxMessage
+        context.OutboxMessages.Add(new OutboxMessage
         {
             Id = Guid.NewGuid(),
             EventType = nameof(OrderCancelledEvent),

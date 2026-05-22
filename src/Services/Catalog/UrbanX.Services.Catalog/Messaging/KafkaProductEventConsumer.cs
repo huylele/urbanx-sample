@@ -46,8 +46,27 @@ public class KafkaProductEventConsumer : BackgroundService
                 var consumeResult = consumer.Consume(stoppingToken);
                 if (consumeResult?.Message?.Value == null) continue;
 
-                var productEvent = JsonSerializer.Deserialize<ProductEvent>(consumeResult.Message.Value);
-                if (productEvent == null) continue;
+                ProductEvent? productEvent;
+                try
+                {
+                    productEvent = JsonSerializer.Deserialize<ProductEvent>(consumeResult.Message.Value);
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogError(ex,
+                        "Failed to deserialize product event from topic {Topic}, partition {Partition}, offset {Offset}. Message skipped.",
+                        Topic, consumeResult.Partition.Value, consumeResult.Offset.Value);
+                    consumer.Commit(consumeResult);
+                    continue;
+                }
+
+                if (productEvent == null)
+                {
+                    _logger.LogWarning("Deserialized null product event from topic {Topic}, offset {Offset}. Message skipped.",
+                        Topic, consumeResult.Offset.Value);
+                    consumer.Commit(consumeResult);
+                    continue;
+                }
 
                 await ProcessEventAsync(productEvent, stoppingToken);
                 consumer.Commit(consumeResult);
