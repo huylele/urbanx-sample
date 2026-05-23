@@ -3,6 +3,7 @@ using System.Text.Json;
 using UrbanX.Services.Payment.Data;
 using UrbanX.Services.Payment.Messaging;
 using UrbanX.Services.Payment.Models;
+using UrbanX.Shared;
 
 namespace UrbanX.Services.Payment.UnitTests;
 

@@ -1,11 +1,3 @@
-namespace UrbanX.Services.Catalog.Models;
-
-public class OutboxMessage
-{
-    public Guid Id { get; set; }
-    public required string EventType { get; set; }
-    public required string Payload { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? ProcessedAt { get; set; }
-    public int RetryCount { get; set; }
-}
+// This type has been consolidated into UrbanX.Shared.OutboxMessage.
+// This file provides a namespace alias for backward compatibility with existing EF migrations.
+global using OutboxMessage = UrbanX.Shared.OutboxMessage;

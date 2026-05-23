@@ -3,6 +3,7 @@ using System.Text.Json;
 using UrbanX.Services.Catalog.Data;
 using UrbanX.Services.Catalog.Messaging;
 using UrbanX.Services.Catalog.Models;
+using UrbanX.Shared;
 
 namespace UrbanX.Services.Catalog.IntegrationTests;
 

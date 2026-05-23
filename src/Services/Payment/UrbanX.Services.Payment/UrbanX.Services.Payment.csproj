@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\ServiceDefaults\UrbanX.ServiceDefaults\UrbanX.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\..\Shared\UrbanX.Shared\UrbanX.Shared.csproj" />
     <ProjectReference Include="..\..\..\Shared\UrbanX.Shared.Security\UrbanX.Shared.Security.csproj" />
   </ItemGroup>
 

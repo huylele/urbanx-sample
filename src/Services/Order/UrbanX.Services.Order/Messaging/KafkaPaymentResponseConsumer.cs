@@ -126,7 +126,7 @@ public class KafkaPaymentResponseConsumer : BackgroundService
                 Reason = note,
                 OccurredAt = DateTime.UtcNow
             };
-            db.OutboxMessages.Add(new Models.OutboxMessage
+            db.OutboxMessages.Add(new UrbanX.Shared.OutboxMessage
             {
                 Id = Guid.NewGuid(),
                 EventType = nameof(OrderCancelledEvent),
